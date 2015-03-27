@@ -4,7 +4,10 @@ __author__ = "Somsubhra Bairi"
 
 # All imports
 import sys
-from os import walk, stat, makedirs, path
+import shutil
+import os
+import errno
+import time
 
 # All constant definitions
 TIME_MACHINE_DIR = '.timemachine'
@@ -20,15 +23,47 @@ class TimeMachine:
 	# Initialize the time machine
 	@staticmethod
 	def init():
-		makedirs(TIME_MACHINE_DIR)
+		os.makedirs(TIME_MACHINE_DIR)
 
 	# Save the current version in time capsule
 	@staticmethod
 	def save():
 		try:
-			stat(TIME_MACHINE_DIR)
+			os.stat(TIME_MACHINE_DIR)
 		except:
 			TimeMachine.init()
+
+		dir_name = str(int(time.time()))
+		Utils.copy(os.getcwd(), os.path.join(TIME_MACHINE_DIR, dir_name))
+
+# The Utility class
+class Utils:
+
+	# Constructor for the utility class
+	def __init__(self):
+		# Unused
+		pass
+
+	# Paths to ignore while copying
+	@staticmethod
+	def ignore_copy(ignore):
+		def _ignore_(path, names):
+			ignored_names = []
+			if ignore in names:
+				ignored_names.append(ignore)
+			return set(ignored_names)
+		return _ignore_
+
+	# Copy the source tree to destination
+	@staticmethod
+	def copy(src, dest):
+		try:
+			shutil.copytree(src, dest, ignore=Utils.ignore_copy(TIME_MACHINE_DIR))
+		except OSError as e:
+			if e.errno == errno.ENOTDIR:
+				shutil.copy(src, dst)
+			else:
+				Logger.log_error("Could not save snapshot in time machine")
 
 # The Logger class
 class Logger:
