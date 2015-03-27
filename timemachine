@@ -4,6 +4,7 @@ __author__ = "Somsubhra Bairi"
 
 # All imports
 import sys
+from os import walk, stat, makedirs, path
 
 # All constant definitions
 TIME_MACHINE_DIR = '.timemachine'
@@ -16,9 +17,18 @@ class TimeMachine:
 		# Unused
 		pass
 
+	# Initialize the time machine
+	@staticmethod
+	def init():
+		makedirs(TIME_MACHINE_DIR)
+
+	# Save the current version in time capsule
 	@staticmethod
 	def save():
-		pass
+		try:
+			stat(TIME_MACHINE_DIR)
+		except:
+			TimeMachine.init()
 
 # The Logger class
 class Logger:
