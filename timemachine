@@ -28,12 +28,38 @@ class TimeMachine:
 	def init():
 		os.makedirs(TIME_MACHINE_DIR)
 
-	# Save the current version in time capsule
+	# Return the current state of the time machine
+	@staticmethod
+	def get_current_state():
+		return Utils.file_read_line(os.path.join(TIME_MACHINE_DIR, CURRENT_STATE_FILE))
+
+	# Get the logs of the time machine
+	@staticmethod
+	def get_logs():
+		log_lines = Utils.file_read_lines(os.path.join(TIME_MACHINE_DIR, LOG_FILE))
+
+		logs = {}
+
+		for line in log_lines:
+			cols = line.split()
+			logs[cols[0]] = ' '.join(cols[1:])
+
+		return logs
+
+	# Print the logs of time machine
+	@staticmethod
+	def print_logs():
+		logs = TimeMachine.get_logs()
+		for timestamp in logs:
+			time_str = time.strftime("%I:%M:%S%p on %B %d, %Y", time.localtime(float(timestamp)))
+			Logger.log("<" + time_str + "> - " + logs[timestamp])
+
+	# Save the current version in time machine
 	@staticmethod
 	def save(message):
 
 		if message == "":
-			message = "Saved at " + datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y")
+			message = "Saved at " + datetime.datetime.now().strftime("%I:%M:%S%p on %B %d, %Y")
 
 		try:
 			os.stat(TIME_MACHINE_DIR)
@@ -78,16 +104,46 @@ class Utils:
 	# Write to file
 	@staticmethod
 	def file_write(file_path, content):
-		f = open(file_path, 'w')
-		f.write(str(content))
-		f.close()
+		try:
+			f = open(file_path, 'w')
+			f.write(str(content))
+			f.close()
+		except:
+			Logger.log_error("Could not access time machine")
 
 	# Append line to file
 	@staticmethod
 	def file_append(file_path, line):
-		f = open(file_path, 'a')
-		f.write(str(line) + '\n')
-		f.close()
+		try:
+			f = open(file_path, 'a')
+			f.write(str(line) + '\n')
+			f.close()
+		except:
+			Logger.log_error("Could not access time machine")
+
+	# Read first line of file
+	@staticmethod
+	def file_read_line(file_path):
+		try:
+			f = open(file_path, 'r')
+			line = f.readline()
+			f.close()
+			return line
+		except:
+			Logger.log_error("Could not access time machine")
+			return ""
+
+	# Read all lines of file
+	@staticmethod
+	def file_read_lines(file_path):
+		try:
+			f = open(file_path, 'r')
+			lines = f.readlines()
+			f.close()
+			return lines
+		except:
+			Logger.log_error("Could not access time machine")
+			return []
 
 # The Logger class
 class Logger:
@@ -96,6 +152,11 @@ class Logger:
 	def __init__(self):
 		# Unused
 		pass
+
+	# Log text
+	@staticmethod
+	def log(message):
+		print '\033[93m' + str(message) + '\033[0m'
 
 	# Log a message
 	@staticmethod
@@ -137,6 +198,8 @@ def main():
 
 		TimeMachine.save(message)
 
+	elif args[1] == 'logs':
+		TimeMachine.print_logs()
 
 if __name__ == "__main__":
 	main()
